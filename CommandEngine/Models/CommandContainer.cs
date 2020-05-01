@@ -10,11 +10,13 @@ namespace CommandEngine.Models
     {
         public Type commandData { get; }
         public Action<object> commandAction { get; }
+        public CommandModelContext modelContext { get; }
 
-        public CommandContainer(Type commandData, Action<object> commandAction)
+        public CommandContainer(Type commandData, Action<object> commandAction, CommandModelContext modelContext)
         {
             this.commandData = commandData;
             this.commandAction = commandAction;
+            this.modelContext = modelContext;
         }
     }
 }

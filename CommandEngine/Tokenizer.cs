@@ -98,7 +98,7 @@ namespace CommandEngine
                     Token = Token.Flag;
                 }
 
-                while (char.IsLetter(currentChar))
+                while (char.IsLetter(currentChar) || currentChar == '-')
                 {
                     sb.Append(currentChar);
                     NextChar();

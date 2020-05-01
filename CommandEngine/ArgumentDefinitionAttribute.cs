@@ -9,11 +9,6 @@ namespace CommandEngine
     public sealed class ArgumentDefinitionAttribute : Attribute
     {
         /// <summary>
-        /// Flags if the command argument is necessary for execution
-        /// </summary>
-        public bool Required { get; }
-
-        /// <summary>
         /// Argument tooltip
         /// </summary>
         public string HelpText { get; }
@@ -23,16 +18,32 @@ namespace CommandEngine
         /// </summary>
         public int ArgumentOrder { get; }
 
+        public string[] aliases { get; }
+
         /// <summary>
         /// Flags if the argument key should be typed out in full, or if the value should be inferred from the position of itself in the argument list
         /// </summary>
-        public bool Verbose => ArgumentOrder != -1;
+        public bool Positional => ArgumentOrder != -1;
 
-        public ArgumentDefinitionAttribute(bool Required = false, string HelpText = "default help text")
+        public ArgumentDefinitionAttribute(string HelpText = "default help text")
         {
-            this.Required = Required;
             this.HelpText = HelpText;
             this.ArgumentOrder = -1;
+            this.aliases = null;
+        }
+
+        public ArgumentDefinitionAttribute(string HelpText = "default help text", int ArgumentOrder = -1)
+        {
+            this.HelpText = HelpText;
+            this.ArgumentOrder = ArgumentOrder;
+            this.aliases = null;
+        }
+
+        public ArgumentDefinitionAttribute(string HelpText = "default help text", params string[] aliases)
+        {
+            this.HelpText = HelpText;
+            this.ArgumentOrder = -1;
+            this.aliases = aliases;
         }
     }
 }
