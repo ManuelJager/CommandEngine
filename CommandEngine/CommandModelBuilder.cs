@@ -1,8 +1,8 @@
-﻿using System;
+﻿using CommandEngine.Exceptions;
+using CommandEngine.Models;
+using System;
 using System.Linq;
 using System.Reflection;
-using CommandEngine.Models;
-using CommandEngine.Exceptions;
 
 namespace CommandEngine
 {
@@ -30,12 +30,15 @@ namespace CommandEngine
                         case Token.Literal:
                             HandlePositionalLiteral(tokenizer, property, commandDataInstance);
                             break;
+
                         case Token.String:
                             HandlePositionalString(tokenizer, property, commandDataInstance);
                             break;
+
                         case Token.Number:
                             HandlePositionalNumber(tokenizer, property, commandDataInstance);
                             break;
+
                         case Token.Flag:
                             throw new IncorrectCommandFormatException($"Flags not supported as positional argument");
                         case Token.Key:
@@ -48,7 +51,6 @@ namespace CommandEngine
                 tokenizer.NextToken();
             }
 
-
             // Handle named arguments and flags
             while (tokenizer.Token != Token.EOF)
             {
@@ -57,9 +59,11 @@ namespace CommandEngine
                     case Token.Flag:
                         HandleNamedFlag(tokenizer, modelContext, commandDataInstance);
                         break;
+
                     case Token.Key:
                         HandleNamedKey(tokenizer, modelContext, commandDataInstance);
                         break;
+
                     case Token.String:
                     case Token.Literal:
                     case Token.Number:
@@ -129,6 +133,7 @@ namespace CommandEngine
                 case Token.Literal:
                     SetEnumProperty(tokenizer, property, commandDataInstance);
                     break;
+
                 case Token.Flag:
                     throw new IncorrectCommandFormatException("Cannot provide a flag after a key");
                 case Token.Key:
@@ -136,14 +141,16 @@ namespace CommandEngine
                 case Token.String:
                     SetStringProperty(tokenizer, property, commandDataInstance);
                     break;
+
                 case Token.Number:
                     SetNumberProperty(tokenizer, property, commandDataInstance);
                     break;
+
                 case Token.EOF:
                     throw new IncorrectCommandFormatException("Expected a value after a key");
             }
         }
-        
+
         /// <summary>
         /// Sets the value by string of an enum property
         /// </summary>

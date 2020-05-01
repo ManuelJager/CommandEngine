@@ -15,6 +15,7 @@ namespace CommandEngine
         /// Add command the parser
         /// </summary>
         /// <typeparam name="ParamT">Type of the command data model</typeparam>
+        /// <exception cref="IncorrectModelFormatException">Signals incorrect parameter object format</exception>
         /// <param name="alias">name of the command</param>
         /// <param name="action">command handler</param>
         /// <returns></returns>
@@ -42,6 +43,11 @@ namespace CommandEngine
             return this;
         }
 
+        /// <summary>
+        /// Parse string input and build parameter object if applicable
+        /// </summary>
+        /// <exception cref="IncorrectCommandFormatException">Signifies incorrect command format</exception>
+        /// <param name="input"></param>
         public void Parse(string input)
         {
             var tokenizer = new Tokenizer(new StringReader(input));
@@ -73,7 +79,7 @@ namespace CommandEngine
                 var dataInstance = CommandModelBuilder.Build(tokenizer, container.CommandData, container.ModelContext);
 
                 // Invoke the command action with the built model
-                container.ParameterfulAction(dataInstance);
+                container.CommandAction(dataInstance);
             }
             else
             {
@@ -84,7 +90,7 @@ namespace CommandEngine
                 }
                 else
                 {
-                    container.ParameterlessAction();
+                    container.CommandAction();
                 }
             }
         }

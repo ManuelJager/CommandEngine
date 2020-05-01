@@ -1,6 +1,6 @@
-﻿using System.Text;
+﻿using CommandEngine.Exceptions;
 using System.IO;
-using CommandEngine.Exceptions;
+using System.Text;
 
 namespace CommandEngine
 {
@@ -70,7 +70,6 @@ namespace CommandEngine
                 bool haveDecimalPoint = false;
                 while (char.IsDigit(currentChar) || (!haveDecimalPoint && currentChar == '.'))
                 {
-
                     sb.Append(currentChar);
                     haveDecimalPoint = currentChar == '.';
                     NextChar();

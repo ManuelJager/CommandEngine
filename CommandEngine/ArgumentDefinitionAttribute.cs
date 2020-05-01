@@ -3,7 +3,7 @@
 namespace CommandEngine
 {
     /// <summary>
-    /// Provides context for a property 
+    /// Provides context for a property
     /// </summary>
     [AttributeUsage(AttributeTargets.Property, AllowMultiple = false, Inherited = true)]
     public sealed class ArgumentDefinitionAttribute : Attribute

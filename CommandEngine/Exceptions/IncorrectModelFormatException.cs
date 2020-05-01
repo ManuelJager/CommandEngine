@@ -2,7 +2,7 @@
 
 namespace CommandEngine.Exceptions
 {
-    sealed class IncorrectModelFormatException : Exception
+    internal sealed class IncorrectModelFormatException : Exception
     {
         public IncorrectModelFormatException(string message)
             : base(message)

@@ -1,5 +1,5 @@
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using CommandEngine;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace CommandEngineTest
 {
@@ -8,7 +8,7 @@ namespace CommandEngineTest
     {
         private Parser testParser;
 
-        class TestArguments
+        private class TestArguments
         {
             [ArgumentDefinition(HelpText: "test help text")]
             public string text { get; set; }
@@ -26,9 +26,9 @@ namespace CommandEngineTest
             Assert.AreEqual("value", value);
         }
 
-        class TestArgumentsAliased
+        private class TestArgumentsAliased
         {
-            [ArgumentDefinition(aliases: new string[] {"aliased-text", "aliased-text-two"}, HelpText: "test help text")]
+            [ArgumentDefinition(aliases: new string[] { "aliased-text", "aliased-text-two" }, HelpText: "test help text")]
             public string text { get; set; }
         }
 
@@ -46,7 +46,7 @@ namespace CommandEngineTest
             Assert.AreEqual("valuu", value);
         }
 
-        class TestArgumentsIndexed
+        private class TestArgumentsIndexed
         {
             [ArgumentDefinition(ArgumentOrder: 0, HelpText: "test help text")]
             public string text { get; set; }
@@ -64,7 +64,7 @@ namespace CommandEngineTest
             Assert.AreEqual("value", value);
         }
 
-        class EnumTestArguments
+        private class EnumTestArguments
         {
             public enum gitMode { pull, push }
 
@@ -83,13 +83,14 @@ namespace CommandEngineTest
                     case EnumTestArguments.gitMode.pull:
                         value = "pulled";
                         break;
+
                     case EnumTestArguments.gitMode.push:
                         value = "pushed";
                         break;
                 }
             });
-            testParser.Parse("git push"); // user input
-            Assert.AreEqual("pushed", value); // passed
+            testParser.Parse("git push"); // user inpt
+            Assert.AreEqual("pushed", value);
         }
 
         [TestInitialize]

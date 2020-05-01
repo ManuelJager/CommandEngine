@@ -2,7 +2,7 @@
 
 namespace CommandEngine
 {
-    static class AttributeExtensions
+    internal static class AttributeExtensions
     {
         /// <summary>
         /// Gets the first Attribute of given type in the given property

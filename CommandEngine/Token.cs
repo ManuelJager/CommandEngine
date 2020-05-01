@@ -24,7 +24,7 @@
         Key,
 
         /// <summary>
-        /// Describes a string value. 
+        /// Describes a string value.
         /// EG: "string"
         /// </summary>
         String,
