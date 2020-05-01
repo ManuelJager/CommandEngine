@@ -8,15 +8,28 @@ namespace CommandEngine.Models
     /// </summary>
     internal sealed class CommandContainer
     {
-        public Type commandData { get; }
-        public Action<object> commandAction { get; }
-        public CommandModelContext modelContext { get; }
+        public Type CommandData { get; }
+        public Action<object> ParameterfulAction { get; }
+        public Action ParameterlessAction { get; }
+        public CommandModelContext ModelContext { get; }
+        public bool IsParameterfulCommand { get; }
 
         public CommandContainer(Type commandData, Action<object> commandAction, CommandModelContext modelContext)
         {
-            this.commandData = commandData;
-            this.commandAction = commandAction;
-            this.modelContext = modelContext;
+            this.CommandData = commandData;
+            this.ParameterfulAction = commandAction;
+            this.ParameterlessAction = null;
+            this.ModelContext = modelContext;
+            this.IsParameterfulCommand = true;
+        }
+
+        public CommandContainer(Action commandAction)
+        {
+            this.CommandData = null;
+            this.ParameterfulAction = null;
+            this.ParameterlessAction = commandAction;
+            this.ModelContext = null;
+            this.IsParameterfulCommand = true;
         }
     }
 }

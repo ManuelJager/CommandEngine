@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using CommandEngine.Models;
 using CommandEngine.Exceptions;
@@ -53,9 +54,6 @@ namespace CommandEngine
             {
                 switch (tokenizer.Token)
                 {
-                    case Token.Literal:
-                        HandleNamedLiteral(tokenizer, modelContext, commandDataInstance);
-                        break;
                     case Token.Flag:
                         HandleNamedFlag(tokenizer, modelContext, commandDataInstance);
                         break;
@@ -63,6 +61,7 @@ namespace CommandEngine
                         HandleNamedKey(tokenizer, modelContext, commandDataInstance);
                         break;
                     case Token.String:
+                    case Token.Literal:
                     case Token.Number:
                         throw new IncorrectCommandFormatException("A value type should be proceded by a key");
                 }
@@ -90,7 +89,7 @@ namespace CommandEngine
 
         private static void HandlePositionalLiteral(Tokenizer tokenizer, PropertyInfo property, object commandDataInstance)
         {
-            throw new NotImplementedException("Positional literal arguments are not yet supported");
+            SetEnumProperty(tokenizer, property, commandDataInstance);
         }
 
         private static void HandlePositionalString(Tokenizer tokenizer, PropertyInfo property, object commandDataInstance)
@@ -101,14 +100,6 @@ namespace CommandEngine
         private static void HandlePositionalNumber(Tokenizer tokenizer, PropertyInfo property, object commandDataInstance)
         {
             SetNumberProperty(tokenizer, property, commandDataInstance);
-        }
-
-        /// <summary>
-        /// Handle a leading literal token
-        /// </summary>
-        private static void HandleNamedLiteral(Tokenizer tokenizer, CommandModelContext modelContext, object commandDataInstance)
-        {
-            throw new NotImplementedException("Named literal arguments are not yet supported");
         }
 
         /// <summary>
@@ -136,7 +127,8 @@ namespace CommandEngine
             switch (tokenizer.Token)
             {
                 case Token.Literal:
-                    throw new IncorrectCommandFormatException("Cannot provide a literal value after a key");
+                    SetEnumProperty(tokenizer, property, commandDataInstance);
+                    break;
                 case Token.Flag:
                     throw new IncorrectCommandFormatException("Cannot provide a flag after a key");
                 case Token.Key:
@@ -151,10 +143,37 @@ namespace CommandEngine
                     throw new IncorrectCommandFormatException("Expected a value after a key");
             }
         }
+        
+        /// <summary>
+        /// Sets the value by string of an enum property
+        /// </summary>
+        private static void SetEnumProperty(Tokenizer tokenizer, PropertyInfo property, object commandDataInstance)
+        {
+            var propertyType = property.PropertyType;
 
+            if (!propertyType.IsEnum)
+            {
+                throw new IncorrectCommandFormatException($"Expected an enum type, instead got type {propertyType}");
+            }
+
+            var names = Enum.GetNames(propertyType);
+            var literalValue = tokenizer.Value;
+
+            if (!names.Contains(literalValue))
+            {
+                throw new IncorrectCommandFormatException($"Expected one of the following values: {string.Join(", ", names)}");
+            }
+
+            property.SetValue(commandDataInstance, Enum.Parse(propertyType, literalValue));
+        }
+
+        /// <summary>
+        /// Sets the value of a string property
+        /// </summary>
         private static void SetStringProperty(Tokenizer tokenizer, PropertyInfo property, object commandDataInstance)
         {
             var propertyType = property.PropertyType;
+
             if (propertyType == typeof(string))
             {
                 property.SetValue(commandDataInstance, tokenizer.Value, null);
@@ -165,6 +184,9 @@ namespace CommandEngine
             }
         }
 
+        /// <summary>
+        /// Sets the value of a number (double, float, long or int) property
+        /// </summary>
         private static void SetNumberProperty(Tokenizer tokenizer, PropertyInfo property, object commandDataInstance)
         {
             var propertyType = property.PropertyType;

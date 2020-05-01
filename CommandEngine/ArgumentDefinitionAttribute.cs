@@ -32,14 +32,14 @@ namespace CommandEngine
             this.aliases = null;
         }
 
-        public ArgumentDefinitionAttribute(string HelpText = "default help text", int ArgumentOrder = -1)
+        public ArgumentDefinitionAttribute(int ArgumentOrder = -1, string HelpText = "default help text")
         {
             this.HelpText = HelpText;
             this.ArgumentOrder = ArgumentOrder;
             this.aliases = null;
         }
 
-        public ArgumentDefinitionAttribute(string HelpText = "default help text", params string[] aliases)
+        public ArgumentDefinitionAttribute(string[] aliases, string HelpText = "default help text")
         {
             this.HelpText = HelpText;
             this.ArgumentOrder = -1;

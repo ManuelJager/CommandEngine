@@ -1,32 +1,14 @@
-﻿using System;
+﻿using CommandEngine.Exceptions;
+using CommandEngine.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using CommandEngine.Exceptions;
-using CommandEngine.Models;
 using System.Linq;
 
 namespace CommandEngine
 {
     sealed public class Parser
     {
-        private static Parser instance = null;
-
-        public static Parser Instance
-        {
-            get
-            {
-                if (instance == null)
-                {
-                    instance = new Parser();
-                }
-                return instance;
-            }
-            set
-            {
-                instance = value;
-            }
-        }
-
         private Dictionary<string, CommandContainer> commandCollection = new Dictionary<string, CommandContainer>();
 
         /// <summary>
@@ -41,7 +23,7 @@ namespace CommandEngine
             // Validate data model
             var typeContext = ValidateAndBuildContext(typeof(ParamT));
 
-            // Because the object builder cannot know the type, 
+            // Because the object builder cannot know the type,
             // we must wrap the action by another one that converts the object to the correct type for the action to be called
             Action<object> invoker = (data) =>
             {
@@ -53,35 +35,57 @@ namespace CommandEngine
             return this;
         }
 
+        public Parser WithCommand(string alias, Action action)
+        {
+            commandCollection.Add(alias, new CommandContainer(action));
+
+            return this;
+        }
+
         public void Parse(string input)
         {
             var tokenizer = new Tokenizer(new StringReader(input));
 
-            try
+            // Get first word
+            var commandAlias = tokenizer.Value;
+
+            // Must be a word
+            if (tokenizer.Token != Token.Literal)
             {
-                if (tokenizer.Token != Token.Literal)
-                {
-                    throw new IncorrectCommandFormatException("First input must be an argument");
-                }
+                throw new IncorrectCommandFormatException("First input must be an argument");
+            }
 
-                if (!commandCollection.ContainsKey(tokenizer.Value))
-                {
-                    throw new IncorrectCommandFormatException("First input must a registered command");
-                }
+            // Command alias must exist
+            if (!commandCollection.ContainsKey(commandAlias))
+            {
+                throw new IncorrectCommandFormatException("First input must a registered command");
+            }
 
-                var container = commandCollection[tokenizer.Value];
+            // Get command info
+            var container = commandCollection[commandAlias];
 
-                tokenizer.NextToken();
+            tokenizer.NextToken();
 
+            // If the command has parameters
+            if (container.IsParameterfulCommand)
+            {
                 // model used as parameter for the command invoker
-                var dataInstance = CommandModelBuilder.Build(tokenizer, container.commandData, container.modelContext);
+                var dataInstance = CommandModelBuilder.Build(tokenizer, container.CommandData, container.ModelContext);
 
                 // Invoke the command action with the built model
-                container.commandAction(dataInstance);
+                container.ParameterfulAction(dataInstance);
             }
-            catch (Exception e)
+            else
             {
-                Console.WriteLine(e.ToString());
+                // In case of a parameterless command, the user must not input any arguments
+                if (tokenizer.Token != Token.EOF)
+                {
+                    throw new IncorrectCommandFormatException($"Command {commandAlias} is parameterless");
+                }
+                else
+                {
+                    container.ParameterlessAction();
+                }
             }
         }
 
@@ -105,6 +109,7 @@ namespace CommandEngine
 
                     // Handle property types
                     if (!(
+                        property.PropertyType.IsEnum ||
                         property.PropertyType == typeof(string) ||
                         property.PropertyType == typeof(double) ||
                         property.PropertyType == typeof(float) ||

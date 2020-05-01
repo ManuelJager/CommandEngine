@@ -6,6 +6,8 @@ namespace CommandEngineTest
     [TestClass]
     public class ParserTest
     {
+        private Parser testParser;
+
         class TestArguments
         {
             [ArgumentDefinition(HelpText: "test help text")]
@@ -16,17 +18,17 @@ namespace CommandEngineTest
         public void TestParseString()
         {
             var value = "default";
-            Parser.Instance.WithCommand<TestArguments>("test", (data) =>
+            testParser.WithCommand<TestArguments>("test", (data) =>
             {
                 value = data.text;
-            })
-            .Parse("test --text \"value\"");
+            });
+            testParser.Parse("test --text \"value\"");
             Assert.AreEqual("value", value);
         }
 
         class TestArgumentsAliased
         {
-            [ArgumentDefinition(HelpText: "test help text", "aliased-text", "aliased-text-two")]
+            [ArgumentDefinition(aliases: new string[] {"aliased-text", "aliased-text-two"}, HelpText: "test help text")]
             public string text { get; set; }
         }
 
@@ -34,19 +36,19 @@ namespace CommandEngineTest
         public void TestParseStringAliased()
         {
             var value = "default";
-            Parser.Instance.WithCommand<TestArgumentsAliased>("test", (data) =>
+            testParser.WithCommand<TestArgumentsAliased>("test", (data) =>
             {
                 value = data.text;
             });
-            Parser.Instance.Parse("test --aliased-text \"value\"");
+            testParser.Parse("test --aliased-text \"value\"");
             Assert.AreEqual("value", value);
-            Parser.Instance.Parse("test --aliased-text-two \"valuu\"");
+            testParser.Parse("test --aliased-text-two \"valuu\"");
             Assert.AreEqual("valuu", value);
         }
 
         class TestArgumentsIndexed
         {
-            [ArgumentDefinition(HelpText: "test help text", 0)]
+            [ArgumentDefinition(ArgumentOrder: 0, HelpText: "test help text")]
             public string text { get; set; }
         }
 
@@ -54,7 +56,7 @@ namespace CommandEngineTest
         public void TestParseStringIndexed()
         {
             var value = "default";
-            Parser.Instance.WithCommand<TestArgumentsIndexed>("test", (data) =>
+            testParser.WithCommand<TestArgumentsIndexed>("test", (data) =>
             {
                 value = data.text;
             })
@@ -62,11 +64,44 @@ namespace CommandEngineTest
             Assert.AreEqual("value", value);
         }
 
+        class EnumTestArguments
+        {
+            public enum gitMode { pull, push }
+
+            [ArgumentDefinition(ArgumentOrder: 0)]
+            public gitMode Mode { get; set; }
+        }
+
+        [TestMethod]
+        public void TestParseEnum()
+        {
+            var value = "default";
+            testParser.WithCommand<EnumTestArguments>("git", (data) =>
+            {
+                switch (data.Mode)
+                {
+                    case EnumTestArguments.gitMode.pull:
+                        value = "pulled";
+                        break;
+                    case EnumTestArguments.gitMode.push:
+                        value = "pushed";
+                        break;
+                }
+            });
+            testParser.Parse("git push"); // user input
+            Assert.AreEqual("pushed", value); // passed
+        }
+
+        [TestInitialize]
+        public void InitializeTest()
+        {
+            testParser = new Parser();
+        }
 
         [TestCleanup]
         public void CleanUpTest()
         {
-            Parser.Instance = null;
+            testParser = null;
         }
     }
 }
