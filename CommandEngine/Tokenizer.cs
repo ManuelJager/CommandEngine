@@ -1,5 +1,4 @@
-﻿using CommandEngine.Exceptions;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 
 namespace CommandEngine
@@ -10,7 +9,7 @@ namespace CommandEngine
     /// Get value with .Type
     /// Go to the next chunk with NextToken()
     /// </summary>
-    internal sealed class Tokenizer
+    public sealed class Tokenizer
     {
         private int iterator;
         private TextReader reader;

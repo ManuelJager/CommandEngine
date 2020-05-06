@@ -1,11 +1,20 @@
 using CommandEngine;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace CommandEngineTest
 {
     [TestClass]
     public class ParserTest
     {
+        public class TestLogger : ILogger
+        {
+            public void Log(string value)
+            {
+                Console.WriteLine(value);
+            }
+        }
+
         private Parser testParser;
 
         private class TestArguments
@@ -96,7 +105,7 @@ namespace CommandEngineTest
         [TestInitialize]
         public void InitializeTest()
         {
-            testParser = new Parser();
+            testParser = new Parser(new TestLogger());
         }
 
         [TestCleanup]

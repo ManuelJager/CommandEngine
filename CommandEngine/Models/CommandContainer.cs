@@ -1,36 +1,22 @@
-﻿using System;
-
-namespace CommandEngine.Models
+﻿namespace CommandEngine.Models
 {
     /// <summary>
     /// Command instance.
     /// Has no state
     /// </summary>
-    internal sealed class CommandContainer
+    public class Command
     {
-        public Type CommandData { get; }
+        private string helpText;
 
-        // Either an action<object> or action
-        public dynamic CommandAction { get; }
-
-        public CommandModelContext ModelContext { get; }
-
-        public bool IsParameterfulCommand { get; }
-
-        public CommandContainer(Type commandData, Action<object> commandAction, CommandModelContext modelContext)
+        public string HelpText
         {
-            this.CommandData = commandData;
-            this.CommandAction = commandAction;
-            this.ModelContext = modelContext;
-            this.IsParameterfulCommand = true;
+            get => helpText == "" ? "no help text provided" : helpText;
+            set => helpText = value;
         }
 
-        public CommandContainer(Action commandAction)
+        public Command(string helpText)
         {
-            this.CommandData = null;
-            this.CommandAction = commandAction;
-            this.ModelContext = null;
-            this.IsParameterfulCommand = false;
+            this.HelpText = helpText;
         }
     }
 }

@@ -9,12 +9,16 @@ namespace CommandEngine.Models
         {
             this.aliasedProperties = new Dictionary<string, PropertyInfo>();
             this.positionalProperties = new Dictionary<int, PropertyInfo>();
+            this.propertiesHelpText = new Dictionary<string, string>();
         }
 
         // links aliases to the property info of the type
-        public Dictionary<string, PropertyInfo> aliasedProperties { get; }
+        internal Dictionary<string, PropertyInfo> aliasedProperties { get; }
 
-        // links and positional index to the property info of the type
-        public Dictionary<int, PropertyInfo> positionalProperties { get; }
+        // links positional index to the property info of the type
+        internal Dictionary<int, PropertyInfo> positionalProperties { get; }
+
+        // links property to its help text
+        internal Dictionary<string, string> propertiesHelpText { get; }
     }
 }

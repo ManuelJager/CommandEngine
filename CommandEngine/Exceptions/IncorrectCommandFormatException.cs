@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace CommandEngine.Exceptions
+namespace CommandEngine
 {
-    internal sealed class IncorrectCommandFormatException : Exception
+    public sealed class IncorrectCommandFormatException : Exception
     {
         public IncorrectCommandFormatException(string message)
             : base(message)

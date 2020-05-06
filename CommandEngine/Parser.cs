@@ -1,5 +1,4 @@
-﻿using CommandEngine.Exceptions;
-using CommandEngine.Models;
+﻿using CommandEngine.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,12 +6,43 @@ using System.Linq;
 
 namespace CommandEngine
 {
-    sealed public class Parser
+    sealed public partial class Parser
     {
-        private Dictionary<string, CommandContainer> commandCollection = new Dictionary<string, CommandContainer>();
+        private Dictionary<string, Command> commandCollection = new Dictionary<string, Command>();
+        private ILogger HelpLogger { get; }
+
+        public Parser(ILogger helpLogger)
+        {
+            this.HelpLogger = helpLogger;
+            WithCommandTokenizer("help", HelpAction);
+        }
 
         /// <summary>
-        /// Add command the parser
+        /// Add a command that exposes the input reader
+        /// </summary>
+        /// <param name="alias"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public Parser WithCommandTokenizer(string alias, Action<Tokenizer> action)
+        {
+            return WithCommandTokenizer(alias, "", action);
+        }
+
+        /// <summary>
+        /// Add a command that exposes the input reader
+        /// </summary>
+        /// <param name="alias"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public Parser WithCommandTokenizer(string alias, string helpText, Action<Tokenizer> action)
+        {
+            commandCollection.Add(alias, new ExposedCommand(action));
+
+            return this;
+        }
+
+        /// <summary>
+        /// Add command to the parser
         /// </summary>
         /// <typeparam name="ParamT">Type of the command data model</typeparam>
         /// <exception cref="IncorrectModelFormatException">Signals incorrect parameter object format</exception>
@@ -20,6 +50,19 @@ namespace CommandEngine
         /// <param name="action">command handler</param>
         /// <returns></returns>
         public Parser WithCommand<ParamT>(string alias, Action<ParamT> action)
+        {
+            return WithCommand<ParamT>(alias, "", action);
+        }
+
+        /// <summary>
+        /// Add command to the parser
+        /// </summary>
+        /// <typeparam name="ParamT">Type of the command data model</typeparam>
+        /// <exception cref="IncorrectModelFormatException">Signals incorrect parameter object format</exception>
+        /// <param name="alias">name of the command</param>
+        /// <param name="action">command handler</param>
+        /// <returns></returns>
+        public Parser WithCommand<ParamT>(string alias, string helpText, Action<ParamT> action)
         {
             // Validate data model
             var typeContext = ValidateAndBuildContext(typeof(ParamT));
@@ -31,14 +74,31 @@ namespace CommandEngine
                 action((ParamT)data);
             };
 
-            commandCollection.Add(alias, new CommandContainer(typeof(ParamT), invoker, typeContext));
+            commandCollection.Add(alias, new ParameterfulCommand(helpText, typeof(ParamT), invoker, typeContext));
 
             return this;
         }
 
+        /// <summary>
+        /// Add a parameterless command
+        /// </summary>
+        /// <param name="alias"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
         public Parser WithCommand(string alias, Action action)
         {
-            commandCollection.Add(alias, new CommandContainer(action));
+            return WithCommand(alias, "", action);
+        }
+
+        /// <summary>
+        /// Add a parameterless command
+        /// </summary>
+        /// <param name="alias"></param>
+        /// <param name="action"></param>
+        /// <returns></returns>
+        public Parser WithCommand(string alias, string helpText, Action action)
+        {
+            commandCollection.Add(alias, new ParameterlessCommand(action));
 
             return this;
         }
@@ -68,21 +128,25 @@ namespace CommandEngine
             }
 
             // Get command info
-            var container = commandCollection[commandAlias];
+            var commandBase = commandCollection[commandAlias];
 
             tokenizer.NextToken();
 
             // If the command has parameters
-            if (container.IsParameterfulCommand)
+            if (commandBase.GetType() == typeof(ParameterfulCommand))
             {
+                var command = (ParameterfulCommand)commandBase;
+
                 // model used as parameter for the command invoker
-                var dataInstance = CommandModelBuilder.Build(tokenizer, container.CommandData, container.ModelContext);
+                var dataInstance = CommandModelBuilder.Build(tokenizer, command.CommandData, command.ModelContext);
 
                 // Invoke the command action with the built model
-                container.CommandAction(dataInstance);
+                command.CommandAction(dataInstance);
             }
-            else
+            else if (commandBase.GetType() == typeof(ParameterlessCommand))
             {
+                var command = (ParameterlessCommand)commandBase;
+
                 // In case of a parameterless command, the user must not input any arguments
                 if (tokenizer.Token != Token.EOF)
                 {
@@ -90,8 +154,14 @@ namespace CommandEngine
                 }
                 else
                 {
-                    container.CommandAction();
+                    command.CommandAction();
                 }
+            }
+            else if (commandBase.GetType() == typeof(ExposedCommand))
+            {
+                var command = (ExposedCommand)commandBase;
+
+                command.CommandAction(tokenizer);
             }
         }
 
@@ -132,6 +202,7 @@ namespace CommandEngine
                         var order = argument.ArgumentOrder;
                         orders.Add(order);
                         modelContext.positionalProperties[order] = property;
+                        modelContext.propertiesHelpText[property.Name] = argument.HelpText;
                     }
                     else
                     {
@@ -140,6 +211,7 @@ namespace CommandEngine
                             var alias = property.Name;
                             aliases.Add(alias);
                             modelContext.aliasedProperties[alias] = property;
+                            modelContext.propertiesHelpText[alias] = argument.HelpText;
                         }
                         else
                         {
@@ -148,6 +220,7 @@ namespace CommandEngine
                                 var alias = argument.aliases[i];
                                 aliases.Add(alias);
                                 modelContext.aliasedProperties[alias] = property;
+                                modelContext.propertiesHelpText[alias] = argument.HelpText;
                             }
                         }
                     }

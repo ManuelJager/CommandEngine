@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29409.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandEngine", "CommandEngine\CommandEngine.csproj", "{913C713E-26E1-4B42-8B62-989EA3C2284F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommandEngine", "CommandEngine\CommandEngine.csproj", "{913C713E-26E1-4B42-8B62-989EA3C2284F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandEngineTest", "CommandEngineTest\CommandEngineTest.csproj", "{0D26920C-A92D-49EC-9CAC-9664DA5F6BC9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommandEngineTest", "CommandEngineTest\CommandEngineTest.csproj", "{0D26920C-A92D-49EC-9CAC-9664DA5F6BC9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommandEngineTestConsole", "ConsoleEngineTestConsole\CommandEngineTestConsole.csproj", "{F8287DB9-EAF4-4793-8F68-4DDF6B7F2B63}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{0D26920C-A92D-49EC-9CAC-9664DA5F6BC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D26920C-A92D-49EC-9CAC-9664DA5F6BC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D26920C-A92D-49EC-9CAC-9664DA5F6BC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8287DB9-EAF4-4793-8F68-4DDF6B7F2B63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8287DB9-EAF4-4793-8F68-4DDF6B7F2B63}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8287DB9-EAF4-4793-8F68-4DDF6B7F2B63}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8287DB9-EAF4-4793-8F68-4DDF6B7F2B63}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -3,7 +3,7 @@
     /// <summary>
     /// Describes a part of the command
     /// </summary>
-    internal enum Token
+    public enum Token
     {
         /// <summary>
         /// Describes a string value without quotes

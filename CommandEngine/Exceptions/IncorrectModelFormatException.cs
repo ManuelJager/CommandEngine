@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace CommandEngine.Exceptions
+namespace CommandEngine
 {
-    internal sealed class IncorrectModelFormatException : Exception
+    public sealed class IncorrectModelFormatException : Exception
     {
         public IncorrectModelFormatException(string message)
             : base(message)
