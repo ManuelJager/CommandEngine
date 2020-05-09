@@ -1,4 +1,6 @@
-﻿using CommandEngine.Models;
+﻿#pragma warning disable CS0067
+
+using CommandEngine.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -6,15 +8,23 @@ using System.Linq;
 
 namespace CommandEngine
 {
+    public delegate void ConsoleOutputDelegate(string output);
+
     sealed public partial class Parser
     {
-        private Dictionary<string, Command> commandCollection = new Dictionary<string, Command>();
-        private ILogger HelpLogger { get; }
+        /// <summary>
+        /// Internal dictionary of commands by alias
+        /// </summary>
+        private readonly Dictionary<string, Command> commandCollection = new Dictionary<string, Command>();
 
-        public Parser(ILogger helpLogger)
+        /// <summary>
+        /// Command output event
+        /// </summary>
+        public event ConsoleOutputDelegate Output;
+
+        public Parser()
         {
-            this.HelpLogger = helpLogger;
-            WithCommandTokenizer("help", HelpAction);
+            WithCommandTokenizer("help", "built-in command to display command documentation", HelpAction);
         }
 
         /// <summary>
@@ -36,7 +46,7 @@ namespace CommandEngine
         /// <returns></returns>
         public Parser WithCommandTokenizer(string alias, string helpText, Action<Tokenizer> action)
         {
-            commandCollection.Add(alias, new ExposedCommand(action));
+            commandCollection.Add(alias, new ExposedCommand(helpText, action));
 
             return this;
         }
@@ -69,10 +79,10 @@ namespace CommandEngine
 
             // Because the object builder cannot know the type,
             // we must wrap the action by another one that converts the object to the correct type for the action to be called
-            Action<object> invoker = (data) =>
+            void invoker(object data)
             {
                 action((ParamT)data);
-            };
+            }
 
             commandCollection.Add(alias, new ParameterfulCommand(helpText, typeof(ParamT), invoker, typeContext));
 
@@ -98,7 +108,7 @@ namespace CommandEngine
         /// <returns></returns>
         public Parser WithCommand(string alias, string helpText, Action action)
         {
-            commandCollection.Add(alias, new ParameterlessCommand(action));
+            commandCollection.Add(alias, new ParameterlessCommand(helpText, action));
 
             return this;
         }
@@ -179,55 +189,62 @@ namespace CommandEngine
 
             foreach (var property in properties)
             {
+                // Handle property types
+                if (!(
+                    property.PropertyType.IsEnum ||
+                    property.PropertyType == typeof(string) ||
+                    property.PropertyType == typeof(double) ||
+                    property.PropertyType == typeof(float) ||
+                    property.PropertyType == typeof(long) ||
+                    property.PropertyType == typeof(bool) ||
+                    property.PropertyType == typeof(int)))
+                {
+                    throw new IncorrectModelFormatException($"Unsupported type of {property.PropertyType} present on property {property.Name}");
+                }
+
+                if (!(property.CanRead && property.CanWrite))
+                {
+                    throw new IncorrectModelFormatException($"Property: {property.Name} must be have both a setter and a getter");
+                }
+
+                ArgumentDefinitionAttribute argument;
+
                 try
                 {
-                    var argument = property.GetProperty<ArgumentDefinitionAttribute>();
-
-                    // Handle property types
-                    if (!(
-                        property.PropertyType.IsEnum ||
-                        property.PropertyType == typeof(string) ||
-                        property.PropertyType == typeof(double) ||
-                        property.PropertyType == typeof(float) ||
-                        property.PropertyType == typeof(long) ||
-                        property.PropertyType == typeof(bool) ||
-                        property.PropertyType == typeof(int)))
-                    {
-                        throw new IncorrectModelFormatException($"Unsupported type of {property.PropertyType} present on property {property.Name}");
-                    }
-
-                    // Index properties to the model context
-                    if (argument.Positional)
-                    {
-                        var order = argument.ArgumentOrder;
-                        orders.Add(order);
-                        modelContext.positionalProperties[order] = property;
-                        modelContext.propertiesHelpText[property.Name] = argument.HelpText;
-                    }
-                    else
-                    {
-                        if (argument.aliases == null)
-                        {
-                            var alias = property.Name;
-                            aliases.Add(alias);
-                            modelContext.aliasedProperties[alias] = property;
-                            modelContext.propertiesHelpText[alias] = argument.HelpText;
-                        }
-                        else
-                        {
-                            for (int i = 0; i < argument.aliases.Length; i++)
-                            {
-                                var alias = argument.aliases[i];
-                                aliases.Add(alias);
-                                modelContext.aliasedProperties[alias] = property;
-                                modelContext.propertiesHelpText[alias] = argument.HelpText;
-                            }
-                        }
-                    }
+                    argument = property.GetProperty<ArgumentDefinitionAttribute>();
                 }
                 catch (IndexOutOfRangeException)
                 {
                     throw new IncorrectModelFormatException($"Missing argument definition attribute on property {property.Name}");
+                }
+
+                // Index properties to the model context
+                if (argument.Positional)
+                {
+                    var order = argument.ArgumentOrder;
+                    orders.Add(order);
+                    modelContext.positionalProperties[order] = property;
+                    modelContext.propertiesHelpText[property.Name] = argument.HelpText;
+                }
+                else
+                {
+                    if (argument.aliases == null)
+                    {
+                        var alias = property.Name;
+                        aliases.Add(alias);
+                        modelContext.aliasedProperties[alias] = property;
+                        modelContext.propertiesHelpText[alias] = argument.HelpText;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < argument.aliases.Length; i++)
+                        {
+                            var alias = argument.aliases[i];
+                            aliases.Add(alias);
+                            modelContext.aliasedProperties[alias] = property;
+                            modelContext.propertiesHelpText[alias] = argument.HelpText;
+                        }
+                    }
                 }
             };
 

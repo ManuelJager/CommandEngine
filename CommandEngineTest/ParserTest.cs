@@ -7,14 +7,6 @@ namespace CommandEngineTest
     [TestClass]
     public class ParserTest
     {
-        public class TestLogger : ILogger
-        {
-            public void Log(string value)
-            {
-                Console.WriteLine(value);
-            }
-        }
-
         private Parser testParser;
 
         private class TestArguments
@@ -105,7 +97,8 @@ namespace CommandEngineTest
         [TestInitialize]
         public void InitializeTest()
         {
-            testParser = new Parser(new TestLogger());
+            testParser = new Parser();
+            testParser.Output += (output) => Console.WriteLine(output);
         }
 
         [TestCleanup]

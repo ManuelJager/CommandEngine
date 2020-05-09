@@ -12,7 +12,7 @@ namespace CommandEngine
     public sealed class Tokenizer
     {
         private int iterator;
-        private TextReader reader;
+        private readonly TextReader reader;
         private char currentChar;
 
         public Tokenizer(TextReader reader)

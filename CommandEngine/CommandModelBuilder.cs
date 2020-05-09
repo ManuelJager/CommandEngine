@@ -122,7 +122,6 @@ namespace CommandEngine
         {
             // Get property data
             var property = modelContext.aliasedProperties[tokenizer.Value];
-            var propertyType = property.PropertyType;
 
             // Skip to next token, expecting a value type
             tokenizer.NextToken();
@@ -159,7 +158,7 @@ namespace CommandEngine
 
             if (!propertyType.IsEnum)
             {
-                throw new IncorrectCommandFormatException($"Expected an enum type, instead got type {propertyType}");
+                throw new IncorrectCommandFormatException($"Expected a {propertyType.Name}, instead got a literal value");
             }
 
             var names = Enum.GetNames(propertyType);
