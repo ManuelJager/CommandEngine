@@ -1,21 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace CommandEngine.Models
 {
-    internal sealed class ParameterlessCommand : Command
+    public abstract class ParameterlessCommand : Command
     {
-        public Action CommandAction { get; }
-
-        internal ParameterlessCommand(Action commandAction)
-            : base("")
+        public override void CommandHandle(Console console, Tokenizer tokenizer)
         {
-            this.CommandAction = commandAction;
-        }
-
-        internal ParameterlessCommand(string helpText, Action commandAction)
-            : base(helpText)
-        {
-            this.CommandAction = commandAction;
+            if (tokenizer.Token != Token.EOF)
+            {
+                throw new IncorrectCommandFormatException("Parameterless commands cannot have parameters");
+            }
+            CommandAction();
         }
     }
 }

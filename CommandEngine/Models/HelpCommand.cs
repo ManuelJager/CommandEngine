@@ -1,30 +1,33 @@
-﻿using CommandEngine.Models;
+﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
-namespace CommandEngine
+namespace CommandEngine.Models
 {
-    sealed public partial class Parser
+    class HelpCommand : ExposedCommand
     {
-        private void HelpAction(Tokenizer tokenizer)
+        public override string Name => "help";
+
+        public override void CommandHandle(Console console, Tokenizer tokenizer)
         {
             // Handle no parameter
             if (tokenizer.Token == Token.EOF)
             {
-                Output.Invoke("Availible commands: \n\n" + string.Join("\n", commandCollection.Keys));
+                console.InvokeOutput("Availible commands: \n\n" + string.Join("\n", console.CommandDict.Keys));
             }
             // handle first parameter
             else if (tokenizer.Token == Token.Literal)
             {
-                HelpHandleFirstParameter(tokenizer);
+                HelpHandleFirstParameter(console, tokenizer);
             }
             // handle invalid parameter
             else throw new IncorrectCommandFormatException("Expected a command name");
         }
 
-        private void HelpHandleFirstParameter(Tokenizer tokenizer)
+        private void HelpHandleFirstParameter(Console console, Tokenizer tokenizer)
         {
             var commandName = tokenizer.Value;
-            if (!commandCollection.ContainsKey(commandName))
+            if (!console.CommandDict.ContainsKey(commandName))
             {
                 // handle non existant command
                 throw new IncorrectCommandFormatException($"Command \"{commandName}\" doesn't exist");
@@ -32,24 +35,24 @@ namespace CommandEngine
 
             // Get command
             var arg0 = tokenizer.Value;
-            var command = commandCollection[arg0];
+            var command = console.CommandDict[arg0];
 
             // Go to second parameter
             tokenizer.NextToken();
 
             if (tokenizer.Token == Token.EOF)
             {
-                HelpHandleCommandOutput(command, commandName);
+                HelpHandleCommandOutput(console, command, commandName);
             }
             else if (tokenizer.Token == Token.Literal)
             {
-                HelpHandleSecondParameter(tokenizer, command);
+                HelpHandleSecondParameter(console, tokenizer, command);
             }
             // handle incorrect command property format
             else throw new IncorrectCommandFormatException("Expected a command property");
         }
 
-        private void HelpHandleCommandOutput(Command command, string commandName)
+        private void HelpHandleCommandOutput(Console console, Command command, string commandName)
         {
             var lines = new List<string>
             {
@@ -57,9 +60,9 @@ namespace CommandEngine
             };
 
             // if the command contains properties, print them out
-            if (command.GetType() == typeof(ParameterfulCommand))
+            if (command.GetType().IsSubclassOf(typeof(ParameterfulCommand)))
             {
-                var propertiesHelpText = ((ParameterfulCommand)command).ModelContext.propertiesHelpText;
+                var propertiesHelpText = ((ParameterfulCommand)command).Context.propertiesHelpText;
 
                 lines.Add("Properties: ");
 
@@ -69,21 +72,21 @@ namespace CommandEngine
                 }
             }
 
-            Output.Invoke(string.Join("\n", lines));
+            console.InvokeOutput(string.Join("\n", lines));
         }
 
-        private void HelpHandleSecondParameter(Tokenizer tokenizer, Command command)
+        private void HelpHandleSecondParameter(Console console, Tokenizer tokenizer, Command command)
         {
-            if (command.GetType() == typeof(ParameterfulCommand))
+            if (command.GetType().IsSubclassOf(typeof(ParameterfulCommand)))
             {
-                var propertiesHelpText = ((ParameterfulCommand)command).ModelContext.propertiesHelpText;
+                var propertiesHelpText = ((ParameterfulCommand)command).Context.propertiesHelpText;
                 var arg1 = tokenizer.Value;
 
                 if (propertiesHelpText.ContainsKey(arg1))
                 {
                     var helpText = propertiesHelpText[arg1];
                     // log command property
-                    Output.Invoke($"{arg1}: {helpText}");
+                    console.InvokeOutput($"{arg1}: {helpText}");
                 }
                 // handle property not found
                 else throw new IncorrectCommandFormatException($"Command doesn't contain property \"{arg1}\"");
@@ -91,5 +94,7 @@ namespace CommandEngine
             // handle incorrect command type
             else throw new IncorrectCommandFormatException("Command contains no defined properties");
         }
+
+        public override void CommandAction() { }
     }
 }

@@ -1,22 +1,16 @@
-﻿namespace CommandEngine.Models
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace CommandEngine.Models
 {
-    /// <summary>
-    /// Command instance.
-    /// Has no state
-    /// </summary>
-    public class Command
+    public abstract class Command
     {
-        private string helpText;
-
-        public string HelpText
-        {
-            get => helpText == "" ? "no help text provided" : helpText;
-            set => helpText = value;
-        }
-
-        public Command(string helpText)
-        {
-            this.HelpText = helpText;
-        }
+        public abstract string Name { get; }
+        public virtual string HelpText => "No help text provided";
+        // Action of the command
+        public abstract void CommandAction();
+        // Handle of the command
+        public abstract void CommandHandle(Console console, Tokenizer tokenizer);
     }
 }

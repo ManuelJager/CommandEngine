@@ -1,21 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Text;
 
 namespace CommandEngine.Models
 {
-    internal sealed class ExposedCommand : Command
+    public abstract class ExposedCommand : Command
     {
-        public Action<Tokenizer> CommandAction { get; }
-
-        public ExposedCommand(Action<Tokenizer> commandAction)
-            : base("")
+        public Tokenizer InputHandle { get; private set; }
+        public override void CommandHandle(Console console, Tokenizer tokenizer)
         {
-            this.CommandAction = commandAction;
-        }
-
-        public ExposedCommand(string helpText, Action<Tokenizer> commandAction)
-            : base(helpText)
-        {
-            this.CommandAction = commandAction;
+            InputHandle = tokenizer;
+            CommandAction();
         }
     }
 }

@@ -1,15 +1,23 @@
 ﻿using CommandEngine;
+using CommandEngine.Models;
 using System;
-using System.Threading;
+using static System.Console;
 
 namespace CommandEngineTextConsole
 {
     internal class Program
     {
-        public class PrintArgs
+        public class PrintCommand : ParameterfulCommand
         {
             [ArgumentDefinition(0, "Value to be printed")]
-            public string Value { get; set; }
+            public string value { get; set; } = "default";
+
+            public override string Name => "print";
+
+            public override void CommandAction()
+            {
+                WriteLine(value);
+            }
         }
 
         private static string FormatOutput(string output)
@@ -19,32 +27,21 @@ namespace CommandEngineTextConsole
 
         private static void Main(string[] args)
         {
-            var parser = new Parser();
+            var console = new CommandEngine.Console();
 
-            parser.Output += (output) => Console.WriteLine(FormatOutput(output));
+            console.Output += value => WriteLine(FormatOutput(value));
 
-            parser.WithCommand("q", "quits to desktop", () =>
-            {
-                Console.WriteLine("Quitting...");
-                Thread.Sleep(1000);
-                Environment.Exit(0);
-            });
-
-            parser.WithCommand<PrintArgs>("echo", "prints a message to the console", (data) =>
-            {
-                Console.WriteLine(data.Value);
-            });
+            console.Add(new PrintCommand());
 
             while (true)
             {
-                Console.Write("Input a command > ");
                 try
                 {
-                    parser.Parse(Console.ReadLine());
+                    console.Parse(ReadLine());
                 }
-                catch (IncorrectCommandFormatException e)
+                catch (Exception e)
                 {
-                    Console.WriteLine(FormatOutput(e.Message));
+                    WriteLine(FormatOutput(e.Message));
                 }
             }
         }
